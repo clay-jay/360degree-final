@@ -36,37 +36,21 @@ export default function ThreeSixtyViewer() {
     }))
     .sort((a, b) => a.id - b.id)
   //объявляем переменные
-  const canvasRef = useRef  ()
+  const canvasRef = useRef()
   const [loadedImages, setLoadedImages] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [startX, setStartX] = useState(0)
   const [endX, setEndX] = useState(null)
   const [currentImage, setCurrentImage] = useState(0)   
-  const [animation, setAnimation] = useState(null)
+  const animation = useRef()
   const [newFrame, setNewFrame] = useState(0)
 
   useEffect(() => {
-    const canvas = canvasRef
-    loadImages()
-    //объявляем хендлеров
-    // window.addEventListener("mousedown", handleMouseDown)
-    // window.addEventListener("touchstart", handleTouchStart)
-    // window.addEventListener("mousemove", handleMouseMove)
-    // window.addEventListener("touchmove", handleTouchMove)
-    // window.addEventListener("mouseup", handleMouseUp)
-    // window.addEventListener("touchend", handleMouseUp)
-
-    // return (
-    //   () => window.removeEventListener("mousedown", handleMouseDown),
-    //   window.removeEventListener("touchstart", handleTouchStart),
-    //   window.removeEventListener("mousemove", handleMouseMove),
-    //   window.removeEventListener("touchmove", handleTouchMove),
-    //   window.removeEventListener("mouseup", handleMouseUp),
-    //   window.removeEventListener("touchend", handleMouseUp)
-    // )
+        loadImages()
+        console.log('useEffect')
   }, [])
-  //не справился с управлением Promice
-
+  
+  //?
   const loadImages = () => {
     const images = cleanData
     if (loadedImages.length === images.length) {
@@ -81,27 +65,6 @@ export default function ThreeSixtyViewer() {
     })
     console.log("loaded")
     drawImage(0)
-  }
-  //отрисовка прогрессбара в канвасе
-  const drawLoadingBar = progress => {
-    const canvas = canvasRef.current
-    const context = canvas.getContext("2d")
-    const barWidth = Math.round(window.innerWidth / 5)
-    const barHeight = Math.round(barWidth / 10)
-    const barPosX = (canvas.width - barWidth) / 2
-    const barPosY = (canvas.height - barHeight) / 2
-
-    context.fillStyle = "#0096d6"
-    context.clearRect(0, 0, canvas.width, canvas.height)
-    context.fillRect(barPosX, barPosY, barWidth, barHeight)
-
-    const fillVal = Math.min(Math.max(progress / 100, 0), 1)
-    context.fillRect(
-      barPosX + 1,
-      barPosY + 1,
-      fillVal * (barWidth - 2),
-      barHeight - 2
-    )
   }
 
   const drawImage = frame => {
@@ -118,15 +81,11 @@ export default function ThreeSixtyViewer() {
     console.log(startX)
   }
 
-  const handleTouchStart = e => {
-    setStartX(e.touches[0].pageX)
-  }
-
   const handleMouseMove = e => {
     if (startX !== null) {
       const delta = e.pageX - (!endX ? startX : endX)
-      setStartX(e.pageX)
-      console.log('move: ' + startX)
+      setEndX(e.pageX)
+      console.log('move: ' + endX)  
 
       let startingFrame = currentImage
       if (currentImage === loadedImages.length - 1) {
@@ -137,33 +96,33 @@ export default function ThreeSixtyViewer() {
 
       let moveFrame = startingFrame
       if (delta > 0) {
-        moveFrame = startingFrame + 1
+        moveFrame = startingFrame - 1
+      } else if(delta < 0){
+          moveFrame = startingFrame + 1
       }
 
       setNewFrame(Math.min(Math.max(moveFrame, 0), loadedImages.length - 1))
 
-    //   if (animation === null) {
-    //     setAnimation(requestAnimationFrame(animationFrame))
-    //   }
+      if (animation === null) {
+        animation.current = requestAnimationFrame(animationFrame)
+      }
     }
   }
-//   const animationFrame = () => {
-//     drawImage(newFrame)
-//     setAnimation(requestAnimationFrame(animationFrame))
-//   }
-
-  const handleTouchMove = e => handleMouseMove(e.touches[0])
+  const animationFrame = () => {
+    drawImage(newFrame)
+    animation.current = requestAnimationFrame(animationFrame)
+  }
 
   const handleMouseUp = () => {
     setStartX(null)
     setEndX(null)
-    //animation && cancelAnimationFrame(animation)
-    setAnimation(null)
+    animation && cancelAnimationFrame(animation)
+    cancelAnimationFrame(animation.current)
   }
 
   return (
     <div className="canvasContainer">
-      <canvas width="640" height="333" ref={canvasRef} onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onMouseUp={handleMouseUp}></canvas>
+      <canvas width="640" height="333" ref={canvasRef} onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp}></canvas>
     </div>
   )
 }
