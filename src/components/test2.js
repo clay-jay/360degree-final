@@ -70,6 +70,7 @@ export default function TestV2() {
     console.log("MouseDown: " + e.pageX)
     setStartX(e.pageX)
     setDragging(true)
+    document.body.style.cursor = 'w-resize';
   }
   const handleMouseMove = e => {
     if (draggin) {
@@ -102,16 +103,24 @@ export default function TestV2() {
   const handleMouseUp = e => {
     console.log("MouseUp: " + e.pageX)
     setDragging(false)
+    document.body.style.cursor = 'pointer';
   }
+  const handleMouseOver = e => {
+    document.body.style.cursor = 'pointer';
+  }
+
+
 
   if (done) {
     return (
-      <div className="App">
         <div
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
+          onMouseOver={handleMouseOver}
           draggable="false"
+          width="640"
+          heigth="333"
         >
             <img
           src={currentImageSrc}
@@ -120,7 +129,7 @@ export default function TestV2() {
 
         />
         </div>
-      </div>
+
     )
   } else {
     loadImages()
