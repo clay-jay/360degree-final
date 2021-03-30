@@ -2,7 +2,6 @@ import React, { useState } from "react"
 import { useStaticQuery, graphql } from "gatsby"
 import { makeStyles } from "@material-ui/core/styles"
 import CircularProgress from "@material-ui/core/CircularProgress"
-import "./test.css"
 
 export default function Test() {
   const graphqlQuery = graphql`
@@ -115,7 +114,6 @@ export default function Test() {
            onDrag={handleDragMove}
            onDragEnd={handleDragEnd}>
         <img
-          className="noDragClass"
           src={currentImageSrc}
 
         />
