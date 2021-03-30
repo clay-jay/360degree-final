@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useState } from "react"
 import { useStaticQuery, graphql } from "gatsby"
 import { makeStyles } from "@material-ui/core/styles"
 import CircularProgress from "@material-ui/core/CircularProgress"
@@ -29,11 +29,11 @@ export default function Test() {
   const [currentImageSrc, setCurrentImageSrc] = useState("")
   const [loadedImages, setLoadedImages] = useState([])
   const [currentImage, setCurrentImage] = useState(0)
+  //изображения загружены
   const [done, setDone] = useState(false)
   const [startX, setStartX] = useState(0)
-  const [endX, setEndX] = useState(null)
 
-  //для ghostImage
+  //для ghostImage (маленькое прозрачное изображение)
   const dragImage = new Image()
   dragImage.src =
     "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
@@ -47,7 +47,7 @@ export default function Test() {
         base64: node.childImageSharp.fixed.base64,
       }))
       .sort((a, b) => a.id - b.id)
-
+    
     cleanData.forEach(item => {
       loadedImages.push(item)
     })
@@ -69,11 +69,9 @@ export default function Test() {
 
   const handleDragEnd = e => {
     console.log("mouseUp" + e.pageX)
-    document.body.style.cursor = 'auto';
   }
 
   const handleDragMove = e => {
-    document.body.style.cursor = 'w-resize'
     const delta = e.pageX - startX
     const absDelta = Math.abs(delta)
     let tempCurrImage = currentImage
@@ -108,9 +106,7 @@ export default function Test() {
     },
   }))
   const classes = useStyles()
-  //   UseEventListener(handleMouseDown, "dragstart")
-  //   UseEventListener(handleMouseUp, "drag")
-  //   UseEventListener(handleMouseMove, "dragend")
+
   if (done) {
     return (
       <div width="640"
