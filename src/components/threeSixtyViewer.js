@@ -1,8 +1,10 @@
 import React, { createRef, useEffect, useRef, useState } from "react"
 import { useStaticQuery, graphql } from "gatsby"
-import UseEventListener from "./eventListener"
+import { makeStyles } from '@material-ui/core/styles';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import UseEventListener from './eventListener'
 
-export default function ThreeSixtyViewer() {
+  export default function ThreeSixtyViewer() {
   //запрос для получения base64 изображений (width is fixed = 640px)
   const graphqlQuery = graphql`
     query {
@@ -25,64 +27,51 @@ export default function ThreeSixtyViewer() {
       }
     }
   `
+  const useStyles = makeStyles((theme) => ({
+    root: {
+      display: 'flex',
+      '& > * + *': {
+        marginLeft: theme.spacing(2),
+      },
+    },
+  }));
+  const classes = useStyles()
 
-  //выполняем запрос
-  const data = useStaticQuery(graphqlQuery)
-  //мапим в массив и сортируем его
-  const cleanData = data.allFile.edges
-    .map(({ node }) => ({
-      id: node.base.replace(".jpg", ""),
-      base64: node.childImageSharp.fixed.base64,
-    }))
-    .sort((a, b) => a.id - b.id)
   //объявляем переменные
-  const canvasRef = useRef()
   const [loadedImages, setLoadedImages] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const [mousePressed, setMousePressed] = useState(false)
   const [startX, setStartX] = useState(0)
   const [endX, setEndX] = useState(null)
   const [currentImage, setCurrentImage] = useState(0)   
-  const animation = useRef()
+  const [currentImageSrc, setCurrentImageSrc] = useState('')
   const [newFrame, setNewFrame] = useState(0)
-
-  useEffect(() => {
-        loadImages()
-        console.log('useEffect')
-  }, [])
   
-  //?
+  //выполняем запрос
+  const data = useStaticQuery(graphqlQuery)
+    //мапим в массив и сортируем его
+  const cleanData = data.allFile.edges
+  .map(({ node }) => ({
+      id: node.base.replace(".jpg", ""),
+      base64: node.childImageSharp.fixed.base64,
+  }))
+  .sort((a, b) => a.id - b.id)
+
   const loadImages = () => {
-    const images = cleanData
-    if (loadedImages.length === images.length) {
-      drawImage(0)
-      return
-    }
-    images.forEach(image => {
-      const img = new Image()
-      img.src = image.base64
-      loadedImages.push(img)
-      console.log(loadedImages)
-    })
     console.log("loaded")
-    drawImage(0)
+    setCurrentImage(0)
+    setCurrentImageSrc(cleanData[currentImage].base64)
+    console.log(cleanData)
   }
 
-  const drawImage = frame => {
-    const canvas = canvasRef.current
-    const context = canvas.getContext("2d")
-    context.clearRect(0, 0, canvas.width, canvas.height)
-    const newImage = loadedImages[frame]
-    context.drawImage(newImage, 0, 0)
-    setCurrentImage(frame)
-  }
-
-  function handleMouseDown(e) {  
+  const handleMouseDown = (e) => {  
     setStartX(e.pageX)
+    setMousePressed(true)
     console.log(startX)
   }
 
   const handleMouseMove = e => {
-    if (startX !== null) {
+    if (mousePressed) {
       const delta = e.pageX - (!endX ? startX : endX)
       setEndX(e.pageX)
       console.log('move: ' + endX)  
@@ -102,27 +91,27 @@ export default function ThreeSixtyViewer() {
       }
 
       setNewFrame(Math.min(Math.max(moveFrame, 0), loadedImages.length - 1))
-
-      if (animation === null) {
-        animation.current = requestAnimationFrame(animationFrame)
-      }
     }
-  }
-  const animationFrame = () => {
-    drawImage(newFrame)
-    animation.current = requestAnimationFrame(animationFrame)
   }
 
   const handleMouseUp = () => {
-    setStartX(null)
-    setEndX(null)
-    animation && cancelAnimationFrame(animation)
-    cancelAnimationFrame(animation.current)
+    setMousePressed(false)
   }
 
-  return (
+
+  if(data.length === cleanData.length){
+    return (
     <div className="canvasContainer">
-      <canvas width="640" height="333" ref={canvasRef} onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp}></canvas>
-    </div>
-  )
+      <img width="640" height="333" onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} src={currentImageSrc}></img>
+    </div>)
+  } else {
+    loadImages()
+    return (
+      <div className={classes.root}>
+        <CircularProgress />
+      </div>
+    )
+  }
+
+  
 }
