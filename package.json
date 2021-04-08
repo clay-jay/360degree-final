@@ -6,6 +6,8 @@
   "author": "Kyle Mathews <mathews.kyle@gmail.com>",
   "dependencies": {
     "@material-ui/core": "^4.11.3",
+    "@zip.js/zip.js": "^2.2.26",
+    "adm-zip": "^0.5.5",
     "extract-zip": "^2.0.1",
     "gatsby": "^3.1.2",
     "gatsby-plugin-gatsby-cloud": "^2.1.0",
@@ -16,6 +18,8 @@
     "gatsby-plugin-sharp": "^3.1.2",
     "gatsby-source-filesystem": "^3.1.0",
     "gatsby-transformer-sharp": "^3.1.0",
+    "jszip": "^3.6.0",
+    "jszip-utils": "^0.1.0",
     "prop-types": "^15.7.2",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
