@@ -1,20 +1,11 @@
 import React, { useState } from "react"
-import { useStaticQuery, graphql } from "gatsby"
 import CircularProgress from '@material-ui/core/CircularProgress';
 import * as zip from "@zip.js/zip.js"
 import './threeSixtyViewer.css'
 
-  export default function ThreeSixtyViewer() {
-    const query = graphql`
-    {
-      file(name: { eq: "bse" }) {
-        publicURL
-      }
-    }
-  `
-  const data = useStaticQuery(query)
+  export default function ThreeSixtyViewer(props) {
   const [srcArr, setSrcArr] = useState([])
-  const archive = new zip.ZipReader(new zip.HttpReader(data.file.publicURL))
+  const archive = new zip.ZipReader(new zip.HttpReader(props.zipPublicURL))
   const [doneLoading, setDoneLoading] = useState(false)
   const [currentImage, setCurrentImage] = useState(0)
   const [startX, setStartX] = useState(0)
