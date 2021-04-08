@@ -91,6 +91,7 @@ import './threeSixtyViewer.css'
         >
             <img
           src={srcArr[currentImage]}
+          alt={"image-" + currentImage}
           className='noDragClass'
           draggable='false'
         />
