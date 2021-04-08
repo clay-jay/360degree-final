@@ -6,7 +6,7 @@ import ThreeSixtyViewer from "../components/threeSixtyViewer"
 
 
 const IndexPage = () => (
-  <ZipHandler />
+  <ThreeSixtyViewer />
 )
 
 export default IndexPage

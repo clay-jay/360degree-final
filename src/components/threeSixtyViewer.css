@@ -1,19 +1,27 @@
-.canvasContainer {
-    position: relative;
-    display: flex;
-    min-height: 100vh;
-  }
-  
-  canvas {
-    flex: 1;
-    webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-    -ms-touch-action: none;
-    touch-action: pan-y;
-    image-rendering: -webkit-optimize-contrast;
-  }
+.noDragClass {
+  flex: 1;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  -ms-touch-action: none;
+  touch-action: pan-y;
+  image-rendering: -webkit-optimize-contrast;
+
+}
+
+.loadingDiv{
+  width: 640px;
+  height: 333px;
+  position: relative;
+
+}
+
+.circle{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: -25px 0 0 -25px;
+}

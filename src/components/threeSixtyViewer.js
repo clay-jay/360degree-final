@@ -1,117 +1,108 @@
-import React, { createRef, useEffect, useRef, useState } from "react"
+import React, { useState } from "react"
 import { useStaticQuery, graphql } from "gatsby"
-import { makeStyles } from '@material-ui/core/styles';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import UseEventListener from './eventListener'
+import * as zip from "@zip.js/zip.js"
+import './threeSixtyViewer.css'
 
   export default function ThreeSixtyViewer() {
-  //запрос для получения base64 изображений (width is fixed = 640px)
-  const graphqlQuery = graphql`
-    query {
-      allFile(
-        filter: {
-          extension: { regex: "/(jpg)|(jpeg)|(png)/" }
-          relativeDirectory: { eq: "360images" }
-        }
-      ) {
-        edges {
-          node {
-            childImageSharp {
-              fixed(base64Width: 640) {
-                base64
-              }
-            }
-            base
-          }
-        }
+    const query = graphql`
+    {
+      file(name: { eq: "bse" }) {
+        publicURL
       }
     }
   `
-  const useStyles = makeStyles((theme) => ({
-    root: {
-      display: 'flex',
-      '& > * + *': {
-        marginLeft: theme.spacing(2),
-      },
-    },
-  }));
-  const classes = useStyles()
-
-  //объявляем переменные
-  const [loadedImages, setLoadedImages] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [mousePressed, setMousePressed] = useState(false)
+  const data = useStaticQuery(query)
+  const [srcArr, setSrcArr] = useState([])
+  const archive = new zip.ZipReader(new zip.HttpReader(data.file.publicURL))
+  const [doneLoading, setDoneLoading] = useState(false)
+  const [currentImage, setCurrentImage] = useState(0)
   const [startX, setStartX] = useState(0)
-  const [endX, setEndX] = useState(null)
-  const [currentImage, setCurrentImage] = useState(0)   
-  const [currentImageSrc, setCurrentImageSrc] = useState('')
-  const [newFrame, setNewFrame] = useState(0)
-  
-  //выполняем запрос
-  const data = useStaticQuery(graphqlQuery)
-    //мапим в массив и сортируем его
-  const cleanData = data.allFile.edges
-  .map(({ node }) => ({
-      id: node.base.replace(".jpg", ""),
-      base64: node.childImageSharp.fixed.base64,
-  }))
-  .sort((a, b) => a.id - b.id)
+  const [draggin, setDragging] = useState(false)
 
   const loadImages = () => {
-    console.log("loaded")
-    setCurrentImage(0)
-    setCurrentImageSrc(cleanData[currentImage].base64)
-    console.log(cleanData)
-  }
+    if (srcArr.length === 0)
+    archive
+      .getEntries()
+      .then(res => {
+        const arrayPromis = res
+          .filter(
+            item =>
+              item.filename.includes(".jpg") &&
+              !item.filename.includes("MACOSX")
+          )
+          .sort((a, b) => a.filename.localeCompare(b.filename))
+          .map((item) => item.getData(new zip.Data64URIWriter()))
 
-  const handleMouseDown = (e) => {  
+        return Promise.all(arrayPromis)
+      })
+      .then(res => {
+        setSrcArr(res)
+        setDoneLoading(true)
+      })
+  } 
+
+  const handleMouseDown = e => {
     setStartX(e.pageX)
-    setMousePressed(true)
-    console.log(startX)
+    setDragging(true)
+    document.body.style.cursor = 'w-resize';
   }
-
   const handleMouseMove = e => {
-    if (mousePressed) {
-      const delta = e.pageX - (!endX ? startX : endX)
-      setEndX(e.pageX)
-      console.log('move: ' + endX)  
+    if (draggin) {
+      const delta = e.pageX - startX
+      const absDelta = Math.abs(delta)
+      let tempCurrImage = currentImage
 
-      let startingFrame = currentImage
-      if (currentImage === loadedImages.length - 1) {
-        startingFrame = 0
-      } else if (currentImage === 0) {
-        startingFrame = loadedImages.length - 1
+      if (absDelta > 3) {
+        if (delta > 0) {
+          tempCurrImage = tempCurrImage + 1
+        } else if (delta < 0) {
+          tempCurrImage = tempCurrImage - 1
+        }
+
+        if (tempCurrImage > srcArr.length - 1) {
+          tempCurrImage = 0
+        } else if (tempCurrImage < 0) {
+          tempCurrImage = srcArr.length - 1
+        }
+
+        setCurrentImage(tempCurrImage)
+        setStartX(e.pageX)
       }
-
-      let moveFrame = startingFrame
-      if (delta > 0) {
-        moveFrame = startingFrame - 1
-      } else if(delta < 0){
-          moveFrame = startingFrame + 1
-      }
-
-      setNewFrame(Math.min(Math.max(moveFrame, 0), loadedImages.length - 1))
     }
   }
-
-  const handleMouseUp = () => {
-    setMousePressed(false)
+  const handleMouseUp = e => {
+    setDragging(false)
+    document.body.style.cursor = 'pointer';
   }
-
-
-  if(data.length === cleanData.length){
+  const handleMouseOver = e => {
+    document.body.style.cursor = 'pointer';
+  }
+  
+  if (doneLoading) {
     return (
-    <div className="canvasContainer">
-      <img width="640" height="333" onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} src={currentImageSrc}></img>
-    </div>)
+        <div
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseOver={handleMouseOver}
+          draggable="false"
+          style={{  width: '640px' }}
+        >
+            <img
+          src={srcArr[currentImage]}
+          className='noDragClass'
+          draggable='false'
+        />
+        </div>
+    )
   } else {
     loadImages()
     return (
-      <div className={classes.root}>
-        <CircularProgress />
+      <div className="loadingDiv">
+        <CircularProgress className="circle" />
       </div>
     )
   }
-
   
 }
